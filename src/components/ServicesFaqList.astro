@@ -1,0 +1,17 @@
+---
+import Alert from './starwind/alert/Alert.astro';
+export interface Props { faqs: any[] }
+const { faqs = [] } = Astro.props;
+---
+{faqs.length > 0 ? (
+  <ul class="list-disc ml-6 text-left">
+    {faqs.map((f) => (
+      <li class="mb-2">
+        <span class="font-semibold text-pink-700">{f.question}</span><br />
+        <span class="text-gray-700">{f.reponse}</span>
+      </li>
+    ))}
+  </ul>
+) : (
+  <Alert variant="info">Aucune question fréquente à afficher pour le moment.</Alert>
+)}

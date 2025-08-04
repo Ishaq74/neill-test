@@ -1,0 +1,24 @@
+---
+export interface Props {
+  serviceId: string | number;
+}
+const { serviceId } = Astro.props;
+let avis = [];
+let moyenne = null;
+let loading = true;
+try {
+  const res = await fetch(`/api/avis-db?serviceId=${serviceId}`);
+  if (res.ok) {
+    avis = await res.json();
+    if (avis.length) {
+      moyenne = (avis.reduce((acc: any, a: any) => acc + (a.note || 0), 0 as any) / avis.length).toFixed(1);
+    }
+  }
+} catch {}
+loading = false;
+---
+{!loading && avis.length > 0 ? (
+  <div class="flex items-center gap-2 text-yellow-600 text-sm">{moyenne} / 5 ({avis.length} avis)</div>
+) : (
+  <div class="text-gray-400 text-sm">Aucun avis</div>
+)}

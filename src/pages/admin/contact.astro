@@ -1,0 +1,44 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+let messages = [];
+try {
+  const res = await fetch('/api/contact?all=1');
+  if (res.ok) {
+    messages = await res.json();
+  }
+} catch (e) {
+  messages = [];
+}
+---
+
+<AdminLayout>
+  <section class="container mx-auto py-12">
+    <h1 class="text-3xl font-bold mb-4">Messages de contact</h1>
+    {messages.length === 0 ? (
+      <div class="bg-yellow-100 text-yellow-800 p-4 rounded">Aucun message reçu.</div>
+    ) : (
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded shadow">
+          <thead>
+            <tr>
+              <th class="px-4 py-2">Nom</th>
+              <th class="px-4 py-2">Email</th>
+              <th class="px-4 py-2">Message</th>
+              <th class="px-4 py-2">Reçu le</th>
+            </tr>
+          </thead>
+          <tbody>
+            {messages.map((m: { name: string; email: string; message: string; created_at: string }) => (
+              <tr>
+                <td class="border px-4 py-2">{m.name}</td>
+                <td class="border px-4 py-2">{m.email}</td>
+                <td class="border px-4 py-2">{m.message}</td>
+                <td class="border px-4 py-2">{m.created_at}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </section>
+</AdminLayout>

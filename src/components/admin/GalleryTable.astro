@@ -1,0 +1,55 @@
+---
+// Composant Astro natif pour affichage et gestion CRUD de la galerie
+const fetchGallery = async () => {
+  const res = await fetch('/api/galerie');
+  if (!res.ok) return [];
+  return await res.json();
+};
+const images = await fetchGallery();
+---
+<section>
+  <h2>Liste des images</h2>
+  <table style="width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px #0001;">
+    <thead>
+      <tr>
+        <th>Image</th>
+        <th>Titre</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {images.length === 0 ? (
+        <tr><td colspan="4">Aucune image enregistrée.</td></tr>
+      ) : (
+        images.map((img: { id: number; url: string; titre: string; description: string }) => (
+          <tr>
+            <td><img src={img.url} alt={img.titre} style="max-width:80px;max-height:80px;object-fit:cover;border-radius:4px;" /></td>
+            <td>{img.titre}</td>
+            <td>{img.description}</td>
+            <td>
+              <button onclick={`editImage('${img.id}')`}>Éditer</button>
+              <button onclick={`deleteImage('${img.id}')`}>Supprimer</button>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</section>
+<script type="module">
+  async function deleteImage(id) {
+    if (!confirm('Supprimer cette image ?')) return;
+    const res = await fetch('/api/galerie', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    if (res.ok) location.reload();
+    else alert('Erreur lors de la suppression');
+  }
+  function editImage(id) {
+    // À compléter : ouvrir le formulaire d’édition
+    alert('Édition non implémentée (démo)');
+  }
+</script>

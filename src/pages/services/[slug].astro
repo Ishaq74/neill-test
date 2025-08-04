@@ -1,0 +1,80 @@
+---
+import ServiceAvis from '../../components/ServiceAvis.astro';
+import ServiceGallery from '../../components/ServiceGallery.astro';
+import ServiceFaq from '../../components/ServiceFaq.astro';
+import Layout from '@layouts/Layout.astro';
+import db from '@lib/db';
+export async function getStaticPaths() {
+  const services = db.prepare('SELECT slug FROM services').all();
+  return (services as { slug: string }[]).map((s) => ({ params: { slug: String(s.slug) } }));
+}
+const { slug } = Astro.params;
+let service: import('../../types/Service').Service | null = null;
+let faqs: any[] = [];
+let avis: any[] = [];
+let images: any[] = [];
+try {
+  service = db.prepare('SELECT * FROM services WHERE slug = ?').get(slug) as import('../../types/Service').Service;
+  if (service && service.id) {
+    if (typeof service.tags === 'string') service.tags = JSON.parse(service.tags);
+    if (typeof service.steps === 'string') service.steps = JSON.parse(service.steps);
+    faqs = db.prepare('SELECT * FROM faq WHERE servicesGlobal = 1 OR serviceId = ? ORDER BY id ASC').all(service.id);
+    avis = db.prepare('SELECT * FROM avis WHERE servicesGlobal = 1 OR serviceId = ? ORDER BY id ASC').all(service.id);
+    images = db.prepare('SELECT * FROM galerie WHERE servicesGlobal = 1 OR serviceId = ? ORDER BY id ASC').all(service.id);
+  }
+} catch (e) {
+  service = null;
+}
+---
+<Layout>
+  <section class="container mx-auto py-12">
+    {service && service.nom ? (
+      <>
+        <div class="flex flex-col md:flex-row gap-8 items-start">
+          {service.image && (
+            <img src={service.image} alt={service.imageAlt || service.nom} class="w-full md:w-1/3 rounded shadow mb-6 md:mb-0" loading="lazy" />
+          )}
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold mb-4 text-pink-700 flex items-center gap-2">
+              {service.icon && <span class={`inline-block icon-${service.icon} text-2xl`} aria-hidden="true"></span>}
+              {service.nom}
+              {service.isFeatured ? <span class="ml-2 px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-bold">En vedette</span> : null}
+              {(!service.isActive) ? <span class="ml-2 px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs font-bold">Inactif</span> : null}
+            </h1>
+            <div class="flex gap-2 mb-2 flex-wrap">
+              {service.categorie && <span class="inline-block bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs font-semibold">{service.categorie}</span>}
+              {service.duree && <span class="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">{service.duree}</span>}
+              {service.durationMinutes && <span class="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">{service.durationMinutes} min</span>}
+              {service.tags && service.tags.length > 0 && service.tags.map(tag => <span class="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">{tag}</span>)}
+            </div>
+            <p class="mb-2 text-lg">{service.description}</p>
+            {service.content && <div class="mb-2 text-base text-gray-700"><b>Contenu :</b> {service.content}</div>}
+            {service.notes && <div class="mb-2 text-sm text-gray-500"><b>Notes :</b> {service.notes}</div>}
+            {service.steps && service.steps.length > 0 && (
+              <ol class="list-decimal list-inside mb-2 text-sm text-gray-700">
+                {service.steps.map(step => <li>{step}</li>)}
+              </ol>
+            )}
+            <div class="font-bold text-pink-700 text-2xl mb-8">{service.prix} €</div>
+            <a href={`/reservations?service=${service.slug}`} class="bg-pink-700 text-white px-6 py-3 rounded hover:bg-pink-800">Réserver ce service</a>
+            <div class="mt-6">
+              <ServiceGallery images={images} />
+            </div>
+          </div>
+        </div>
+        {/* Section avis */}
+        <div class="mt-12">
+          <h2 class="text-xl font-bold mb-4 text-pink-700">Avis sur ce service</h2>
+          <ServiceAvis avis={avis} />
+        </div>
+        {/* Section FAQ dynamique */}
+        <div class="mt-12">
+          <ServiceFaq faqs={faqs} />
+        </div>
+      </>
+    ) : (
+      <div class="bg-yellow-100 text-yellow-800 p-4 rounded">Service introuvable.</div>
+    )}
+  </section>
+</Layout>
+

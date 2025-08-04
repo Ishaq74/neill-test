@@ -1,0 +1,127 @@
+---
+import { Icon } from 'astro-icon/components';
+import '/src/styles/global.css';
+
+import Button from '@components/starwind/button/Button.astro';
+import Card from '@components/starwind/card/Card.astro';
+import CardHeader from '@components/starwind/card/CardHeader.astro';
+import CardTitle from '@components/starwind/card/CardTitle.astro';
+import CardContent from '@components/starwind/card/CardContent.astro';
+import CardFooter from '@components/starwind/card/CardFooter.astro';
+import Dropdown from '@components/starwind/dropdown/Dropdown.astro';
+import DropdownItem from '@components/starwind/dropdown/DropdownItem.astro';
+import DropdownTrigger from '@components/starwind/dropdown/DropdownTrigger.astro';
+import DropdownContent from '@components/starwind/dropdown/DropdownContent.astro';
+import DropdownLabel from '@components/starwind/dropdown/DropdownLabel.astro';
+import Avatar from '@components/starwind/avatar/Avatar.astro';
+import AvatarImage from '@components/starwind/avatar/AvatarImage.astro';
+import AvatarFallback from '@components/starwind/avatar/AvatarFallback.astro';
+   
+const navLinks = [
+  { href: "/admin", label: "Dashboard", icon: "mdi:view-dashboard-outline" },
+  { href: "/", label: "Voir le Site", icon: "mdi:eye" },
+  { href: "/admin/blog", label: "Blog", icon: "mdi:newspaper-variant-outline" },
+  { href: "/admin/services", label: "Services", icon: "mdi:wrench-outline" },
+  { href: "/admin/formations", label: "Formations", icon: "mdi:school-outline" },
+  { href: "/admin/galerie", label: "Galerie", icon: "mdi:image-multiple-outline" },
+  { href: "/admin/avis", label: "Avis", icon: "mdi:star-circle-outline" },
+  { href: "/admin/reservations", label: "Réservations", icon: "mdi:calendar-check-outline" },
+  { href: "/admin/calendrier", label: "Calendrier", icon: "mdi:calendar-month-outline" },
+  { href: "/admin/factures", label: "Factures", icon: "mdi:receipt-text-outline" },
+  { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "mdi:account-multiple-outline" },
+  { href: "/admin/design", label: "Design", icon: "mdi:palette-outline" },
+  { href: "/admin/navigation", label: "Navigation", icon: "mdi:menu" },
+  { href: "/admin/parametres", label: "Paramètres", icon: "mdi:cog-outline" },
+];
+
+const currentPage = Astro.url.pathname;
+---
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MonAdmin - Dashboard</title>
+</head>
+<body>
+<div class="relative min-h-screen bg-gray-100 lg:flex">
+  
+  <input type="checkbox" id="menu-toggle" class="hidden peer" />
+
+  <aside 
+    id="sidebar" 
+    class="fixed inset-y-0 left-0 z-30 w-64 transform -translate-x-full bg-gray-800 text-white p-4 transition-transform duration-300 ease-in-out peer-checked:translate-x-0 lg:relative lg:translate-x-0 lg:flex-shrink-0"
+  >
+    <div class="flex items-center justify-between mb-8">
+    <a href="/admin" class="text-2xl font-bold text-white no-underline">
+        MonAdmin
+    </a>
+    <!-- Bouton de fermeture visible uniquement en mobile quand la sidebar est ouverte -->
+    <label for="menu-toggle" class="lg:hidden cursor-pointer p-1 text-white hover:text-gray-300 peer-checked:block hidden" aria-label="Fermer le menu">
+        <Icon name="mdi:close" class="w-6 h-6" />
+    </label>
+    </div>
+    
+    <nav>
+      <ul class="space-y-1">
+        {navLinks.map(link => (
+          <li>
+            <a 
+              href={link.href} 
+              class:list={[
+                "group flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-semibold no-underline",
+                currentPage === link.href 
+                  ? "bg-gray-900 text-white" 
+                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
+              ]}
+            >
+              <Icon name={link.icon} class="h-5 w-5" />
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </aside>
+
+  <label for="menu-toggle" class="fixed inset-0 z-20 bg-black/50 hidden peer-checked:block lg:hidden"></label>
+
+  <div class="flex flex-1 flex-col">
+    <header class="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-white/80 px-4 backdrop-blur-sm lg:justify-end">
+      <label for="menu-toggle" class="cursor-pointer p-2 lg:hidden" aria-label="Ouvrir le menu">
+        <Icon name="mdi:menu" class="h-6 w-6" />
+      </label>
+      
+      <div class="ml-auto flex items-center">
+        <Dropdown>
+          <DropdownTrigger asChild>
+            <Button variant="ghost" class="relative h-8 w-8 rounded-full">
+              <Avatar>
+                <AvatarImage src="https://i.pravatar.cc/40" alt="Avatar" />
+                <AvatarFallback>AD</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownTrigger>
+          <DropdownContent align="end">
+            <DropdownLabel>Mon Compte</DropdownLabel>
+            <DropdownItem as="a" href="/admin/profil">Profil</DropdownItem>
+            <DropdownItem as="a" href="/admin/parametres">Paramètres</DropdownItem>
+            <DropdownItem as="a" href="/logout">Déconnexion</DropdownItem>
+          </DropdownContent>
+        </Dropdown>
+      </div>
+    </header>
+
+    <main class="flex-1 p-4 sm:p-6 lg:p-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Contenu Principal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <slot />
+        </CardContent>
+      </Card>
+    </main>
+  </div>
+</div>
+</body>
+</html>

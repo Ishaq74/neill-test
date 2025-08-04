@@ -1,0 +1,10 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+import AdminCalendar from '@admin/AdminCalendar.jsx';
+---
+<AdminLayout>
+  <section class="container mx-auto py-12">
+    <h1 class="text-3xl font-bold mb-8 text-pink-700 text-center">Calendrier des réservations</h1>
+    <AdminCalendar client:visible />
+  </section>
+</AdminLayout>

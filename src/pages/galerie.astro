@@ -1,0 +1,136 @@
+---
+
+import Layout from '../layouts/Layout.astro';
+
+// Récupération des services et images côté serveur Astro
+type Service = {
+  id: number;
+  nom: string;
+};
+type GalerieImage = {
+  id: number;
+  imageUrl: string;
+  title: string;
+  serviceId?: number;
+};
+let services: Service[] = [];
+let galerie: GalerieImage[] = [];
+try {
+  const res = await fetch('/api/service-db');
+  if (res.ok) services = await res.json();
+} catch {}
+try {
+  const res = await fetch('/api/galerie-db');
+  if (res.ok) galerie = await res.json();
+} catch {}
+---
+
+
+<Layout>
+
+  <section class="relative w-full min-h-[320px] flex items-center justify-center bg-gradient-to-br from-pink-100 to-pink-300 overflow-hidden">
+    <img src="/assets/shooting-annecy.jpg" alt="Galerie Maquillage shooting à Annecy" class="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none" loading="lazy" />
+    <div class="relative z-10 text-center py-16">
+      <h1 class="text-4xl md:text-5xl font-bold text-pink-800 drop-shadow mb-4">Galerie</h1>
+      <p class="text-lg md:text-xl text-pink-900 mb-2">Parcourez nos réalisations et inspirations maquillage</p>
+    </div>
+  </section>
+
+  <section class="container mx-auto py-10">
+    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-8">
+      <label for="service-select" class="font-semibold text-pink-700">Filtrer par service :</label>
+      <select id="service-select" name="service" class="border rounded px-3 py-2 w-full md:w-64">
+        <option value="">Tous les services</option>
+        {services.map((s) => <option value={s.id}>{s.nom}</option>)}
+      </select>
+    </div>
+
+    <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {galerie.length === 0 ? (
+        <div class="bg-yellow-100 text-yellow-800 p-4 rounded col-span-full">Aucune image à afficher pour ce filtre.</div>
+      ) : (
+        galerie.map((img, idx) => (
+          <button type="button" class="group relative focus:outline-none" data-idx={idx} tabindex="0">
+            <img src={img.imageUrl} alt={img.title} class="w-full h-48 object-cover rounded shadow group-hover:scale-105 transition-transform" loading="lazy" />
+            <span class="absolute bottom-2 left-2 bg-white/80 text-pink-800 text-xs px-2 py-1 rounded shadow">{img.title}</span>
+          </button>
+        ))
+      )}
+    </div>
+
+    <dialog id="lightbox-dialog" class="w-full max-w-2xl bg-white rounded-xl shadow-xl overflow-hidden">
+      <form method="dialog">
+        <button id="close-lightbox" class="absolute top-4 right-4 bg-pink-700 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-pink-800" aria-label="Fermer">&times;</button>
+      </form>
+      <div class="flex flex-col items-center relative">
+        <button id="prev-img" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center shadow hover:bg-pink-100" aria-label="Image précédente">&#8592;</button>
+        <img id="lightbox-img" src="" alt="" class="max-h-80 max-w-full rounded shadow-lg mx-8" />
+        <button id="next-img" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center shadow hover:bg-pink-100" aria-label="Image suivante">&#8594;</button>
+        <div id="lightbox-title" class="mt-4 text-center text-pink-800 font-semibold"></div>
+        <div id="lightbox-desc" class="text-gray-600 text-sm mt-1"></div>
+      </div>
+    </dialog>
+
+    <script type="module">
+      const galerie = JSON.parse('{JSON.stringify(galerie)}');
+      let filtered = galerie;
+      let currentIdx = 0;
+      const select = document.getElementById('service-select');
+      const grid = document.getElementById('gallery-grid');
+      const dialog = document.getElementById('lightbox-dialog');
+      const imgEl = document.getElementById('lightbox-img');
+      const titleEl = document.getElementById('lightbox-title');
+      const descEl = document.getElementById('lightbox-desc');
+      const prevBtn = document.getElementById('prev-img');
+      const nextBtn = document.getElementById('next-img');
+
+      function renderGrid() {
+        grid.innerHTML = '';
+        if (filtered.length === 0) {
+          grid.innerHTML = '<div class="bg-yellow-100 text-yellow-800 p-4 rounded col-span-full">Aucune image à afficher pour ce filtre.</div>';
+          return;
+        }
+        filtered.forEach((img, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'group relative focus:outline-none';
+          btn.setAttribute('data-idx', idx);
+          btn.tabIndex = 0;
+          btn.innerHTML = `<img src="${img.imageUrl}" alt="${img.title}" class="w-full h-48 object-cover rounded shadow group-hover:scale-105 transition-transform" loading="lazy" /><span class="absolute bottom-2 left-2 bg-white/80 text-pink-800 text-xs px-2 py-1 rounded shadow">${img.title}</span>`;
+          btn.addEventListener('click', () => openLightbox(idx));
+          grid.appendChild(btn);
+        });
+      }
+
+      function openLightbox(idx) {
+        currentIdx = idx;
+        updateLightbox();
+        dialog.showModal();
+      }
+      function updateLightbox() {
+        const img = filtered[currentIdx];
+        imgEl.src = img.imageUrl;
+        imgEl.alt = img.title;
+        titleEl.textContent = img.title;
+        descEl.textContent = img.description || '';
+      }
+      prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentIdx = (currentIdx - 1 + filtered.length) % filtered.length;
+        updateLightbox();
+      });
+      nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentIdx = (currentIdx + 1) % filtered.length;
+        updateLightbox();
+      });
+      select.addEventListener('change', (e) => {
+        const val = select.value;
+        filtered = val ? galerie.filter(img => String(img.serviceId) === val || img.servicesGlobal == 1) : galerie;
+        renderGrid();
+      });
+      // Initial render
+      renderGrid();
+    </script>
+  </section>
+</Layout>

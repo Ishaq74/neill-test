@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-06-24T22:23:13.124Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Créer la structure des pages et la navigation",
+			"complexityScore": 4,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the task into subtasks for creating each page (Accueil, Services, Formations, Galerie, Contact), Navbar, Footer, and routing implementation.",
+			"reasoning": "Involves creating multiple pages and navigation components. Requires planning the site architecture and routing."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Modéliser les données et concevoir les endpoints API",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Break down the task into subtasks for defining each data schema (Service, Formation, Réservation, Utilisateur, Galerie, Avis, Facture) and creating corresponding Astro API endpoints (CRUD).",
+			"reasoning": "Requires careful data modeling and API design for multiple resources. Involves understanding RESTful principles and implementing CRUD operations."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Mettre en place l’authentification admin sécurisée",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the task into subtasks for implementing login, logout, JWT/session management, access control, and security considerations.",
+			"reasoning": "Involves security considerations and implementing authentication mechanisms. Requires understanding of JWT/sessions and access control."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Développer le CMS custom (CRUD complet)",
+			"complexityScore": 9,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Break down the task into subtasks for creating the admin dashboard, implementing CRUD operations for each resource (services, formations, gallery, avis, reservations, planning, factures, media), and adding features like forms, tables, filters, search, and pagination.",
+			"reasoning": "This is a complex task involving building a complete CMS with CRUD operations for multiple resources and UI elements."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Implémenter le système de réservation avancé",
+			"complexityScore": 8,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Break down the task into subtasks for developing the reservation form, calendar integration, time slot management, validation, confirmation email, and admin planning display.",
+			"reasoning": "Requires integrating a calendar, managing time slots, handling validation, and sending confirmation emails. Also involves admin-side display."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Intégrer le paiement en ligne (Stripe/PayPal)",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Break down the task into subtasks for integrating Stripe/PayPal, handling payment statuses, implementing webhooks, and ensuring transaction security.",
+			"reasoning": "Involves integrating with payment gateways, handling payment statuses, and ensuring transaction security."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Générer automatiquement les factures PDF",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the task into subtasks for generating PDF invoices, storing them, and providing download options for both clients and admins.",
+			"reasoning": "Requires generating PDF documents, storing them, and providing download options."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Gérer les médias (upload, galerie, optimisation)",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Break down the task into subtasks for implementing image upload, gallery management, optimization, sorting, and deletion.",
+			"reasoning": "Involves handling image uploads, managing a gallery, optimizing images, and providing sorting and deletion functionalities."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Automatiser les notifications email",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the task into subtasks for sending automated emails for reservations, confirmations, reminders, and contact requests, and managing templates and personalization.",
+			"reasoning": "Requires sending automated emails, managing templates, and personalizing emails."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Optimiser SEO, accessibilité et responsive design",
+			"complexityScore": 5,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the task into subtasks for SEO optimization, accessibility (a11y) improvements, and responsive design implementation.",
+			"reasoning": "Involves optimizing for SEO, accessibility, and responsive design."
+		}
+	]
+}

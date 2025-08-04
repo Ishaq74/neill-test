@@ -1,0 +1,23 @@
+---
+import Alert from './starwind/alert/Alert.astro';
+export interface Props { avis: any[] }
+const { avis = [] } = Astro.props;
+---
+{avis.length > 0 ? (
+  <div class="mt-12">
+    <h2 class="text-2xl font-bold mb-4 text-pink-700">Avis clients</h2>
+    <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {avis.map((a) => (
+        <li class="bg-gray-50 p-4 rounded shadow text-left">
+          <div class="font-semibold">{a.utilisateur}</div>
+          <div class="text-sm text-gray-600 mb-1">{a.commentaire}</div>
+          <div class="text-xs text-yellow-600">{a.note} / 5</div>
+        </li>
+      ))}
+    </ul>
+  </div>
+) : (
+  <div class="mt-12">
+    <Alert variant="info">Aucun avis global à afficher pour le moment.</Alert>
+  </div>
+)}

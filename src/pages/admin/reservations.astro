@@ -1,0 +1,9 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+import AdminReservations from '@admin/AdminReservations.jsx';
+---
+<AdminLayout>
+  <section class="container mx-auto py-12">
+    <AdminReservations client:visible />
+  </section>
+</AdminLayout>

@@ -1,0 +1,11 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+import AdminFormations from '@components/admin/AdminFormations.jsx';
+---
+<AdminLayout>
+  <h1>Gestion des formations</h1>
+  <p>Ajoutez, modifiez ou supprimez les formations proposées.</p>
+  <div style="margin-top:2rem">
+    <AdminFormations client:only="react" />
+  </div>
+</AdminLayout>

@@ -1,0 +1,9 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+import AdminAvis from '@admin/AdminAvis.jsx';
+---
+
+<AdminLayout>
+  <section class="container mx-auto py-12">
+    <AdminAvis client:visible />
+  </section>

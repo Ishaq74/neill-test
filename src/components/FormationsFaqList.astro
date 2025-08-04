@@ -1,0 +1,25 @@
+---
+import Alert from './starwind/alert/Alert.astro';
+let faqs = [];
+let loading = true;
+try {
+  // On récupère toutes les FAQ liées à une formation (formationsGlobal=1 ou formationId non nul)
+  const res = await fetch('/api/faq-db?formationsGlobal=1');
+  if (res.ok) {
+    faqs = await res.json();
+  }
+} catch {}
+loading = false;
+---
+{!loading && faqs.length > 0 ? (
+  <ul class="list-disc ml-6 text-left">
+    {faqs.map((f: { question: string; reponse: string }) => (
+      <li class="mb-2">
+        <span class="font-semibold text-pink-700">{f.question}</span><br />
+        <span class="text-gray-700">{f.reponse}</span>
+      </li>
+    ))}
+  </ul>
+) : (!loading && faqs.length === 0) ? (
+  <Alert variant="info">Aucune question fréquente à afficher pour le moment.</Alert>
+) : null}

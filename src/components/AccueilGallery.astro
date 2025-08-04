@@ -1,0 +1,19 @@
+---
+import Alert from './starwind/alert/Alert.astro';
+export interface Props { images: any[] }
+const { images = [] } = Astro.props;
+---
+{images.length > 0 ? (
+  <div class="mt-12">
+    <h2 class="text-2xl font-bold mb-4 text-pink-700">Galerie</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {images.map((img) => (
+        <img src={img.imageUrl} alt={img.title} class="w-full h-40 object-cover rounded shadow" loading="lazy" />
+      ))}
+    </div>
+  </div>
+) : (
+  <div class="mt-12">
+    <Alert variant="info">Aucune image globale à afficher pour le moment.</Alert>
+  </div>
+)}

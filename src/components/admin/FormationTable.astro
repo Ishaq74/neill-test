@@ -1,0 +1,67 @@
+---
+// Composant Astro natif pour affichage et gestion CRUD des formations
+const fetchFormations = async () => {
+  const res = await fetch('/api/formation');
+  if (!res.ok) return [];
+  return await res.json();
+};
+const formations = await fetchFormations();
+---
+<section>
+  <h2>Liste des formations</h2>
+  <table style="width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px #0001;">
+    <thead>
+      <tr>
+        <th>Titre</th>
+        <th>Description</th>
+        <th>Prix</th>
+        <th>Catégorie</th>
+        <th>Durée</th>
+        <th>Tags</th>
+        <th>Active</th>
+        <th>Vedette</th>
+        <th>Certification</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {formations.length === 0 ? (
+        <tr><td colspan="4">Aucune formation enregistrée.</td></tr>
+      ) : (
+        formations.map((formation: { id: number; titre: string; description: string; prix: number; categorie: string; duree?: number; durationMinutes?: number; tags?: string[]; isActive?: boolean; isFeatured?: boolean; certification?: string }) => (
+          <tr>
+            <td>{formation.titre}</td>
+            <td>{formation.description}</td>
+            <td>{formation.prix} €</td>
+            <td>{formation.categorie}</td>
+            <td>{formation.duree || (formation.durationMinutes ? formation.durationMinutes + ' min' : '')}</td>
+            <td>{formation.tags && formation.tags.length > 0 ? formation.tags.join(', ') : ''}</td>
+            <td>{formation.isActive ? 'Oui' : 'Non'}</td>
+            <td>{formation.isFeatured ? 'Oui' : 'Non'}</td>
+            <td>{formation.certification || ''}</td>
+            <td>
+              <button onclick={`editFormation('${formation.id}')`}>Éditer</button>
+              <button onclick={`deleteFormation('${formation.id}')`}>Supprimer</button>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</section>
+<script type="module">
+  async function deleteFormation(id) {
+    if (!confirm('Supprimer cette formation ?')) return;
+    const res = await fetch('/api/formation', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    if (res.ok) location.reload();
+    else alert('Erreur lors de la suppression');
+  }
+  function editFormation(id) {
+    // À compléter : ouvrir le formulaire d’édition
+    alert('Édition non implémentée (démo)');
+  }
+</script>

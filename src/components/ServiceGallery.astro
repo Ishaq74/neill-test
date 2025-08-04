@@ -1,0 +1,14 @@
+---
+export interface Props { images: any[] }
+import Alert from './starwind/alert/Alert.astro';
+const { images = [] } = Astro.props;
+---
+{images.length > 0 ? (
+  <div class="flex gap-2 mt-2">
+    {images.slice(0,3).map((img) => (
+      <img src={img.imageUrl} alt={img.title} class="w-14 h-14 object-cover rounded" loading="lazy" />
+    ))}
+  </div>
+) : (
+  <Alert variant="info">Aucune image pour ce service pour le moment.</Alert>
+)}

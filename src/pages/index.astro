@@ -1,0 +1,183 @@
+---
+import AccueilAvis from '../components/AccueilAvis.astro';
+import AccueilGallery from '../components/AccueilGallery.astro';
+import Layout from '../layouts/Layout.astro';
+import AccueilFaq from '../components/AccueilFaq.astro';
+import db from '../lib/db';
+let services: any[] = [];
+let formations: any[] = [];
+let faqs: any[] = [];
+let avis: any[] = [];
+let images: any[] = [];
+try {
+  services = db.prepare('SELECT * FROM services ORDER BY id ASC LIMIT 4').all();
+  formations = db.prepare('SELECT * FROM formations ORDER BY id ASC LIMIT 4').all();
+  faqs = db.prepare('SELECT * FROM faq WHERE global = 1 ORDER BY id ASC').all();
+  avis = db.prepare('SELECT * FROM avis WHERE global = 1 ORDER BY id ASC').all();
+  images = db.prepare('SELECT * FROM galerie WHERE global = 1 ORDER BY id ASC').all();
+} catch {}
+---
+<Layout>
+  {/* Hero immersif */}
+  <section class="relative bg-gradient-to-br from-pink-100 to-pink-300 py-20 mb-12 overflow-hidden">
+	<div class="container mx-auto flex flex-col md:flex-row items-center gap-10 z-10 relative">
+	  <div class="flex-1 text-center md:text-left">
+		<h1 class="text-5xl md:text-6xl font-extrabold mb-6 text-pink-700 drop-shadow-lg">Maquilleuse professionnelle à Annecy</h1>
+		<p class="text-xl md:text-2xl mb-8 max-w-2xl text-gray-700">Sublimez chaque moment avec un maquillage sur-mesure, des formations certifiantes et une expérience client 5 étoiles.</p>
+		<div class="flex flex-col md:flex-row gap-4 mb-8 justify-center md:justify-start">
+		  <a href="#a-propos" class="bg-pink-700 text-white px-8 py-3 rounded text-lg font-semibold hover:bg-pink-800 transition">En savoir plus</a>
+		  <a href="/reservations" class="bg-green-600 text-white px-8 py-3 rounded text-lg font-semibold hover:bg-green-700 transition">Réserver</a>
+		</div>
+	  </div>
+	  <div class="flex-1 flex justify-center relative">
+		<img src="/assets/mariee-annecy.jpg" alt="Maquilleuse professionnelle à Annecy, maquillage mariée" class="rounded-3xl shadow-2xl w-96 h-80 object-cover border-4 border-pink-200 z-10" loading="lazy" />
+		<div class="absolute -top-8 -right-8 w-40 h-40 bg-pink-200 rounded-full blur-2xl opacity-40 z-0"></div>
+	  </div>
+	</div>
+	<div class="absolute left-0 bottom-0 w-full h-32 bg-gradient-to-t from-pink-200 to-transparent pointer-events-none"></div>
+  </section>
+
+  {/* À propos (2 colonnes) */}
+  <section id="a-propos" class="container mx-auto py-16">
+	<div class="flex flex-col md:flex-row items-center gap-12">
+	  {/* Colonne gauche : texte + liste */}
+	  <div class="flex-1">
+		<h2 class="text-3xl font-bold text-pink-700 mb-6">À propos</h2>
+		<div class="text-lg text-gray-700 mb-8">
+		  <p>Bienvenue sur le site de Maquilleuse Annecy ! Passionnée par la beauté, l’art et la transmission, je propose des prestations de maquillage professionnel pour tous vos événements, ainsi que des formations certifiantes pour révéler votre talent. Découvrez une approche bienveillante, créative et sur-mesure, au service de votre confiance et de votre éclat.</p>
+		</div>
+		{/* Univers cards en list */}
+		<div class="flex flex-col gap-6">
+		  <a href="/services" class="flex items-center gap-6 bg-white rounded-2xl shadow-xl p-6 hover:scale-[1.02] transition">
+			<img src="/assets/soiree-annecy.jpg" alt="Maquillage soirée à Annecy, look glamour" class="w-20 h-20 object-cover rounded-xl shadow" />
+			<div>
+			  <h3 class="text-xl font-bold text-pink-700 mb-1">Services</h3>
+			  <p class="text-gray-600">Maquillage mariée, soirée, shooting, effets spéciaux, conseils personnalisés…</p>
+			</div>
+		  </a>
+		  <a href="/formations" class="flex items-center gap-6 bg-white rounded-2xl shadow-xl p-6 hover:scale-[1.02] transition">
+			<img src="/assets/cours.jpg" alt="Formations maquillage" class="w-20 h-20 object-cover rounded-xl shadow" />
+			<div>
+			  <h3 class="text-xl font-bold text-pink-700 mb-1">Formations</h3>
+			  <p class="text-gray-600">Devenez pro ou perfectionnez-vous avec nos ateliers et cursus certifiants.</p>
+			</div>
+		  </a>
+		  <a href="/galerie" class="flex items-center gap-6 bg-white rounded-2xl shadow-xl p-6 hover:scale-[1.02] transition">
+			<img src="/assets/shooting-annecy.jpg" alt="Galerie maquillage shooting à Annecy" class="w-20 h-20 object-cover rounded-xl shadow" />
+			<div>
+			  <h3 class="text-xl font-bold text-pink-700 mb-1">Galerie</h3>
+			  <p class="text-gray-600">Découvrez nos réalisations et l’inspiration de nos clientes.</p>
+			</div>
+		  </a>
+		</div>
+	  </div>
+	  {/* Colonne droite : image maquilleuse */}
+	  <div class="flex-1 flex justify-center">
+		<img src="/assets/mariee-annecy.jpg" alt="Maquilleuse professionnelle à Annecy, maquillage mariée bohème" class="rounded-3xl shadow-2xl w-96 h-96 object-cover border-4 border-pink-200" loading="lazy" />
+	  </div>
+	</div>
+  </section>
+
+  {/* Nos services dynamiques */}
+  <section class="container mx-auto py-16">
+	<h2 class="text-2xl font-bold text-pink-700 mb-8 text-center">Nos services phares</h2>
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+	  {services.map((service) => (
+		<div class="bg-white rounded-xl shadow p-6 flex flex-col h-full">
+		  {service.image && <img src={service.image} alt={service.nom} class="w-full h-40 object-cover rounded mb-4" loading="lazy" />}
+		  <h3 class="text-lg font-bold mb-2 text-pink-700">{service.nom}</h3>
+		  <div class="mb-2 text-gray-600">{service.categorie ? `Catégorie : ${service.categorie}` : ''} {service.duree ? `| Durée : ${service.duree}` : ''}</div>
+		  <p class="mb-2 text-gray-700 line-clamp-3">{service.description || ''}</p>
+		  <div class="font-bold text-pink-700 text-lg mb-4">{service.prix} €</div>
+		  <a href={`/services/${service.slug}`} class="bg-pink-700 text-white px-4 py-2 rounded hover:bg-pink-800 text-center mt-auto">Voir le service</a>
+		</div>
+	  ))}
+	</div>
+	<div class="flex justify-center mt-8">
+	  <a href="/services" class="bg-pink-100 text-pink-700 px-8 py-3 rounded text-lg font-semibold hover:bg-pink-200 transition">Voir tous les services</a>
+	</div>
+  </section>
+
+  {/* Nos formations dynamiques */}
+  <section class="container mx-auto py-16">
+	<h2 class="text-2xl font-bold text-pink-700 mb-8 text-center">Nos formations phares</h2>
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+	  {formations.map((formation) => (
+		<div class="bg-white rounded-xl shadow p-6 flex flex-col h-full">
+		  <h3 class="text-lg font-bold mb-2 text-pink-700">{formation.titre}</h3>
+		  <p class="mb-2 text-gray-700 line-clamp-3">{formation.description || ''}</p>
+		  <div class="font-bold text-pink-700 text-lg mb-4">{formation.prix} €</div>
+		  <a href={`/formations/${formation.id}`} class="bg-pink-700 text-white px-4 py-2 rounded hover:bg-pink-800 text-center mt-auto">Voir la formation</a>
+		</div>
+	  ))}
+	</div>
+	<div class="flex justify-center mt-8">
+	  <a href="/formations" class="bg-pink-100 text-pink-700 px-8 py-3 rounded text-lg font-semibold hover:bg-pink-200 transition">Voir toutes les formations</a>
+	</div>
+  </section>
+
+  {/* Bénéfices/valeurs */}
+  <section class="container mx-auto py-16">
+	<h2 class="text-3xl font-bold text-pink-700 mb-8 text-center">Pourquoi choisir Maquilleuse Annecy ?</h2>
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+	  <div class="bg-pink-50 rounded-xl p-6 flex flex-col items-center text-center shadow">
+		<span class="text-4xl mb-2">💄</span>
+		<div class="font-bold text-lg mb-1">Expertise & Créativité</div>
+		<div class="text-gray-600">Plus de 10 ans d’expérience, looks sur-mesure, tendances et techniques pro.</div>
+	  </div>
+	  <div class="bg-pink-50 rounded-xl p-6 flex flex-col items-center text-center shadow">
+		<span class="text-4xl mb-2">🌿</span>
+		<div class="font-bold text-lg mb-1">Produits haut de gamme</div>
+		<div class="text-gray-600">Maquillage longue tenue, hypoallergénique, cruelty-free, adapté à chaque peau.</div>
+	  </div>
+	  <div class="bg-pink-50 rounded-xl p-6 flex flex-col items-center text-center shadow">
+		<span class="text-4xl mb-2">⭐</span>
+		<div class="font-bold text-lg mb-1">Satisfaction client 5★</div>
+		<div class="text-gray-600">Des centaines d’avis positifs, accompagnement bienveillant, écoute et conseils.</div>
+	  </div>
+	  <div class="bg-pink-50 rounded-xl p-6 flex flex-col items-center text-center shadow">
+		<span class="text-4xl mb-2">🎓</span>
+		<div class="font-bold text-lg mb-1">Formations certifiantes</div>
+		<div class="text-gray-600">Ateliers, masterclass, cursus pro pour tous niveaux, pédagogie et passion.</div>
+	  </div>
+	</div>
+  </section>
+
+  {/* Section Avis */}
+
+  <section class="bg-pink-50 py-16">
+	<div class="container mx-auto">
+	  <h2 class="text-2xl font-bold text-pink-700 mb-8 text-center">Avis clients</h2>
+	  <AccueilAvis avis={avis} />
+	</div>
+  </section>
+
+  {/* Section Galerie */}
+  <section class="bg-pink-50 py-16">
+	<div class="container mx-auto">
+	  <h2 class="text-2xl font-bold text-pink-700 mb-8 text-center">Galerie</h2>
+	  <AccueilGallery images={images} />
+	</div>
+  </section>
+
+  {/* Section FAQ */}
+  <section class="bg-pink-50 py-16">
+	<div class="container mx-auto">
+	  <h2 class="text-2xl font-bold text-pink-700 mb-8 text-center">Questions fréquentes</h2>
+	  <AccueilFaq faqs={faqs} />
+	</div>
+  </section>
+
+  {/* CTA final */}
+  <section class="container mx-auto py-16 flex flex-col items-center">
+	<div class="bg-pink-100 rounded-2xl shadow-lg p-10 flex flex-col items-center max-w-2xl">
+	  <h3 class="text-2xl font-bold text-pink-700 mb-4 text-center">Prête à sublimer votre beauté ?</h3>
+	  <p class="text-gray-700 mb-6 text-center">Contactez-moi pour un devis personnalisé ou réservez directement votre séance de maquillage à Annecy.</p>
+	  <div class="flex gap-4">
+		<a href="/contact" class="bg-pink-700 text-white px-8 py-3 rounded text-lg font-semibold hover:bg-pink-800 transition">Contact</a>
+		<a href="/reservations" class="bg-green-600 text-white px-8 py-3 rounded text-lg font-semibold hover:bg-green-700 transition">Réserver</a>
+	  </div>
+	</div>
+	<div class="mt-12 text-gray-500 text-sm">&copy; {new Date().getFullYear()} Maquilleuse Annecy. Tous droits réservés.</div>
+  </section>
+</Layout>

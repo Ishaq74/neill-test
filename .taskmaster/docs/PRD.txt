@@ -1,0 +1,86 @@
+<context>
+# Overview  
+Ce projet est un site web complet pour une maquilleuse professionnelle à Annecy, spécialisé dans les mariages (mariées et invitées). Il vise à offrir une vitrine professionnelle, faciliter la réservation de prestations, proposer des formations, gérer les paiements et factures, et permettre une gestion autonome via un CMS custom. La solution cible les futures mariées, leurs invitées, et toute personne cherchant un service de maquillage ou une formation à Annecy et alentours.
+
+# Core Features  
+- **Catalogue de services** : Présentation détaillée des prestations (maquillage mariée, invitées, essais, forfaits, etc.)
+- **Formations** : Ateliers et coaching, calendrier des sessions, inscription en ligne
+- **Galerie** : Photos avant/après, réalisations, événements
+- **Réservation en ligne** : Formulaire avec calendrier, gestion des créneaux, email de confirmation
+- **Paiement en ligne (optionnel)** : Intégration Stripe/PayPal pour acompte ou règlement total
+- **Facturation PDF** : Génération automatique de factures téléchargeables
+- **Avis clients** : Collecte et affichage de témoignages
+- **Contact** : Formulaire, réseaux sociaux, WhatsApp
+- **CMS custom** : Espace admin sécurisé pour gérer services, formations, galerie, réservations, avis, planning, factures, médias
+
+# User Experience  
+- **Personas** :
+  - Mariée (réservation, devis, paiement, suivi)
+  - Invitée (réservation simple)
+  - Apprenant (inscription formation)
+  - Admin (gestion complète du site)
+- **Parcours clés** :
+  - Découverte des services → réservation → paiement → confirmation → facture
+  - Découverte des formations → inscription → paiement → confirmation
+  - Ajout d’avis ou contact
+  - Gestion admin (CRUD, planning, factures)
+- **UI/UX** :
+  - Design élégant, rassurant, responsive
+  - Navigation claire, accès rapide à la réservation
+  - Utilisation de Starwind UI pour la cohérence visuelle
+</context>
+<PRD>
+# Technical Architecture  
+- **Frontend** : Astro v5, Tailwind CSS, Starwind UI, composants custom
+- **Backend/API** : Endpoints Astro (API REST), gestion des données (JSON/SQLite pour MVP)
+- **Paiement** : Stripe/PayPal (API)
+- **PDF** : PDFKit ou équivalent (Node)
+- **Email** : Nodemailer ou service équivalent
+- **Stockage médias** : local/public/uploads (MVP)
+- **Auth** : JWT/session pour l’admin
+- **Data Models** :
+  - Service, Formation, Booking, User (admin), GalleryItem, Testimonial, Invoice
+- **APIs** :
+  - /api/services, /api/training, /api/bookings, /api/gallery, /api/testimonials, /api/auth, /api/invoice, /api/upload, /api/payment
+- **Infra** : Hébergement Astro SSR ou statique, stockage local/cloud, SMTP/email provider
+
+# Development Roadmap  
+## MVP
+- Pages statiques (Accueil, Services, Formations, Galerie, Contact)
+- Réservation en ligne (formulaire, calendrier, email)
+- CMS admin (CRUD services, formations, galerie, avis, réservations)
+- Auth admin
+- Génération de factures PDF
+- Paiement en ligne (optionnel MVP)
+- Responsive, SEO, accessibilité
+
+## Améliorations futures
+- Paiement obligatoire
+- Gestion avancée du planning (synchronisation agenda)
+- Statistiques admin
+- Notifications SMS
+- Intégration cloud pour médias
+- Multi-admin
+
+# Logical Dependency Chain
+1. Setup Astro, Tailwind, Starwind UI
+2. Pages statiques & navigation
+3. Data models & endpoints API
+4. Auth admin
+5. CMS CRUD (services, formations, galerie, avis, réservations)
+6. Réservation (formulaire, calendrier, email)
+7. Paiement en ligne
+8. Génération PDF
+9. Email notifications
+10. Media management
+11. SEO, accessibilité, tests
+
+# Risks and Mitigations  
+- **Techniques** : Intégration paiement, génération PDF, sécurité admin
+- **MVP** : Prioriser réservation, CMS, facturation avant paiement
+- **Ressources** : Prévoir des modules réutilisables, documentation claire
+
+# Appendix  
+- Recherche sur les sites concurrents (ex : mariages.net, pagesjaunes.fr)
+- Spécifications techniques détaillées sur demande
+</PRD>

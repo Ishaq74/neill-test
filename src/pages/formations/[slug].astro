@@ -1,0 +1,71 @@
+---
+import Layout from '@layouts/Layout.astro';
+import db from '@lib/db';
+import FormationFaq from '../../components/FormationFaq.astro';
+import FormationAvis from '../../components/FormationAvis.astro';
+import FormationGallery from '../../components/FormationGallery.astro';
+export async function getStaticPaths() {
+  const formations = db.prepare('SELECT slug FROM formations').all() as { slug: string }[];
+  return formations.map(f => ({ params: { slug: String(f.slug) } }));
+}
+const { slug } = Astro.params;
+let formation: import('../../types/Formation').Formation | null = null;
+let faqs: any[] = [];
+let avis: any[] = [];
+let images: any[] = [];
+try {
+  formation = db.prepare('SELECT * FROM formations WHERE slug = ?').get(slug) as import('../../types/Formation').Formation;
+  if (formation) {
+    if (typeof formation.tags === 'string') formation.tags = JSON.parse(formation.tags);
+    if (typeof formation.steps === 'string') formation.steps = JSON.parse(formation.steps);
+    faqs = db.prepare('SELECT * FROM faq WHERE formationsGlobal = 1 OR formationId = ? ORDER BY id ASC').all(formation.id);
+    avis = db.prepare('SELECT * FROM avis WHERE formationsGlobal = 1 OR formationId = ? ORDER BY id ASC').all(formation.id);
+    images = db.prepare('SELECT * FROM galerie WHERE formationsGlobal = 1 OR formationId = ? ORDER BY id ASC').all(formation.id);
+  }
+} catch (e) {
+  formation = null;
+}
+---
+<Layout>
+  <section class="container mx-auto py-12">
+    {formation && formation.titre ? (
+      <>
+        <h1 class="text-3xl font-bold mb-4 flex items-center gap-2">
+          {formation.icon && <span class={`inline-block icon-${formation.icon} text-2xl`} aria-hidden="true"></span>}
+          {formation.titre}
+          {formation.isFeatured ? <span class="ml-2 px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-bold">En vedette</span> : null}
+          {(!formation.isActive) ? <span class="ml-2 px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs font-bold">Inactif</span> : null}
+        </h1>
+        <div class="flex gap-2 mb-2 flex-wrap">
+          {formation.categorie && <span class="inline-block bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs font-semibold">{formation.categorie}</span>}
+          {formation.duree && <span class="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">{formation.duree}</span>}
+          {formation.durationMinutes && <span class="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">{formation.durationMinutes} min</span>}
+          {formation.tags && formation.tags.length > 0 && formation.tags.map((tag) => <span class="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">{tag}</span>)}
+        </div>
+        <p class="mb-2 text-lg">{formation.description}</p>
+        {formation.content && <div class="mb-2 text-base text-gray-700"><b>Contenu :</b> {formation.content}</div>}
+        {formation.notes && <div class="mb-2 text-sm text-gray-500"><b>Notes :</b> {formation.notes}</div>}
+        {formation.steps && formation.steps.length > 0 && (
+          <ol class="list-decimal list-inside mb-2 text-sm text-gray-700">
+            {formation.steps.map((step) => <li>{step}</li>)}
+          </ol>
+        )}
+        {formation.certification && <div class="mb-2 text-sm text-green-700"><b>Certification :</b> {formation.certification}</div>}
+        <div class="font-bold text-pink-700 text-2xl mb-8">{formation.prix} €</div>
+        <a href={`/reservations?formation=${formation.slug}`} class="bg-pink-700 text-white px-6 py-3 rounded hover:bg-pink-800">S'inscrire à cette formation</a>
+        <div class="mt-6">
+          <FormationGallery images={images} />
+        </div>
+        <div class="mt-12">
+          <h2 class="text-xl font-bold mb-4 text-pink-700">Avis sur cette formation</h2>
+          <FormationAvis avis={avis} />
+        </div>
+        <div class="mt-12">
+          <FormationFaq faqs={faqs} />
+        </div>
+      </>
+    ) : (
+      <div class="bg-yellow-100 text-yellow-800 p-4 rounded">Formation introuvable.</div>
+    )}
+  </section>
+</Layout>

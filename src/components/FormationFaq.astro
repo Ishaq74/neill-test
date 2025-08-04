@@ -1,0 +1,22 @@
+---
+export interface Props { faqs: any[] }
+import Alert from './starwind/alert/Alert.astro';
+const { faqs = [] } = Astro.props;
+---
+{faqs.length > 0 ? (
+  <div class="mt-8">
+    <h2 class="text-lg font-bold mb-3 text-pink-700">Questions fréquentes sur cette formation</h2>
+    <ul class="list-disc ml-6 text-left">
+      {faqs.map((f) => (
+        <li class="mb-2">
+          <span class="font-semibold text-pink-700">{f.question}</span><br />
+          <span class="text-gray-700">{f.reponse}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+) : (
+  <div class="mt-8">
+    <Alert variant="info">Aucune question fréquente pour cette formation pour le moment.</Alert>
+  </div>
+)}

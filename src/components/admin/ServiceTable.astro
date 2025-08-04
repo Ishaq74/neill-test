@@ -1,0 +1,78 @@
+---
+// Composant Astro natif pour affichage et gestion CRUD des services
+import db from '@lib/db';
+type Service = {
+  id: number;
+  nom: string;
+  description: string;
+  prix: number;
+  categorie: string;
+  duree?: number;
+  durationMinutes?: number;
+  tags?: string[];
+  isActive?: boolean;
+  isFeatured?: boolean;
+};
+let services: Service[] = [];
+try {
+  services = db.prepare('SELECT * FROM services ORDER BY id ASC').all() as Service[];
+} catch (e) {
+  services = [];
+}
+---
+<section>
+  <h2>Liste des services</h2>
+  <table style="width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px #0001;">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Description</th>
+        <th>Prix</th>
+        <th>Catégorie</th>
+        <th>Durée</th>
+        <th>Tags</th>
+        <th>Active</th>
+        <th>Vedette</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {services.length === 0 ? (
+        <tr><td colspan="4">Aucun service enregistré.</td></tr>
+      ) : (
+        services.map(service => (
+          <tr>
+            <td>{service.nom}</td>
+            <td>{service.description}</td>
+            <td>{service.prix} €</td>
+            <td>{service.categorie}</td>
+            <td>{service.duree || (service.durationMinutes ? service.durationMinutes + ' min' : '')}</td>
+            <td>{service.tags && service.tags.length > 0 ? service.tags.join(', ') : ''}</td>
+            <td>{service.isActive ? 'Oui' : 'Non'}</td>
+            <td>{service.isFeatured ? 'Oui' : 'Non'}</td>
+            <td>
+              <button onclick={`editService('${service.id}')`}>Éditer</button>
+              <button onclick={`deleteService('${service.id}')`}>Supprimer</button>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</section>
+<script type="module">
+  async function deleteService(id) {
+    if (!confirm('Supprimer ce service ?')) return;
+    const res = await fetch('/api/service', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    if (res.ok) location.reload();
+    else alert('Erreur lors de la suppression');
+  }
+  function editService(id) {
+    // À compléter : ouvrir le formulaire d’édition
+    alert('Édition non implémentée (démo)');
+  }
+</script>

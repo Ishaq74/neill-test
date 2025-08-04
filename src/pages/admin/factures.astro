@@ -1,0 +1,188 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+import type { Facture } from '../../types/Facture';
+import db from '@lib/db';
+let factures: Facture[] = [];
+try {
+  const stmt = db.prepare('SELECT * FROM factures ORDER BY id DESC');
+  factures = stmt.all() as Facture[];
+} catch (e) {
+  factures = [];
+}
+---
+  <AdminLayout>
+    <section class="container mx-auto py-12">
+      <h1 class="text-3xl font-bold mb-4">Gestion des factures</h1>
+      <form id="add-facture-form" class="mb-8 bg-gray-50 p-4 rounded shadow max-w-2xl mx-auto">
+        <div class="flex flex-col md:flex-row gap-4 items-end">
+          <div class="flex-1">
+            <label for="reservationId" class="block font-semibold">ID Réservation</label>
+            <input id="reservationId" name="reservationId" type="text" required class="w-full border rounded px-3 py-2" placeholder="ID réservation" />
+          </div>
+          <div class="flex-1">
+            <label for="userId" class="block font-semibold">ID Utilisateur</label>
+            <input id="userId" name="userId" type="text" required class="w-full border rounded px-3 py-2" placeholder="ID utilisateur" />
+          </div>
+          <div class="flex-1">
+            <label for="amount" class="block font-semibold">Montant</label>
+            <input id="amount" name="amount" type="number" required class="w-full border rounded px-3 py-2" placeholder="Montant (€)" />
+          </div>
+          <div class="flex-1">
+            <label for="status" class="block font-semibold">Statut</label>
+            <select id="status" name="status" required class="w-full border rounded px-3 py-2">
+              <option value="paid">Payée</option>
+              <option value="pending">En attente</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label for="pdfUrl" class="block font-semibold">PDF (URL)</label>
+            <input id="pdfUrl" name="pdfUrl" type="text" class="w-full border rounded px-3 py-2" placeholder="URL PDF (optionnel)" />
+          </div>
+          <button type="submit" class="bg-pink-700 text-white px-4 py-2 rounded hover:bg-pink-800">Ajouter</button>
+        </div>
+      </form>
+      <table class="w-full bg-white rounded shadow mt-8">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Réservation</th>
+            <th>Utilisateur</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>PDF</th>
+            <th>Créée</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {factures.length === 0 ? (
+            <tr><td colspan="8" class="text-center">Aucune facture</td></tr>
+          ) : factures.map((f) => (
+            <tr id={`row-fact-${f.id}`}> 
+              <td>{f.id}</td>
+              <td>{f.reservationId}</td>
+              <td>{f.userId}</td>
+              <td>{f.amount} €</td>
+              <td>{f.status}</td>
+              <td>{f.pdfUrl ? <a href={f.pdfUrl} target="_blank">PDF</a> : '-'}</td>
+              <td>{f.createdAt?.slice(0,10)}</td>
+              <td>
+                <button class="bg-blue-600 text-white px-2 py-1 rounded" id={`edit-fact-${f.id}`}>Éditer</button>
+                <button class="bg-red-600 text-white px-2 py-1 rounded ml-2" id={`delete-fact-${f.id}`}>Supprimer</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  </AdminLayout>
+</>
+
+<script type="module">
+window.addEventListener('DOMContentLoaded', () => {
+  // Ajout
+  const form = document.getElementById('add-facture-form');
+  if (form) {
+    form.onsubmit = async function(e) {
+      e.preventDefault();
+      let reservationId = '', userId = '', amount = '', status = '', pdfUrl = '';
+      const r = form.querySelector('[name="reservationId"]');
+      if (r && 'value' in r) reservationId = r.value.trim();
+      const u = form.querySelector('[name="userId"]');
+      if (u && 'value' in u) userId = u.value.trim();
+      const a = form.querySelector('[name="amount"]');
+      if (a && 'value' in a) amount = a.value;
+      const s = form.querySelector('[name="status"]');
+      if (s && 'value' in s) status = s.value;
+      const p = form.querySelector('[name="pdfUrl"]');
+      if (p && 'value' in p) pdfUrl = p.value.trim();
+      if (!reservationId || !userId || !amount || !status) {
+        alert('Veuillez remplir tous les champs obligatoires.');
+        return;
+      }
+      const res = await fetch('/api/facture-db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reservationId, userId, amount, status, pdfUrl })
+      });
+      if (res.ok) {
+        form.reset();
+        location.reload();
+      } else {
+        alert("Erreur lors de l'ajout.");
+      }
+    };
+  }
+  // Suppression
+  document.querySelectorAll('[id^="delete-fact-"]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      const id = this.id.replace('delete-fact-', '');
+      if (confirm('Supprimer cette facture ?')) {
+        const res = await fetch(`/api/facture-db?id=${id}`, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else alert('Erreur lors de la suppression.');
+      }
+    });
+  });
+  // Edition inline
+  document.querySelectorAll('[id^="edit-fact-"]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const id = this.id.replace('edit-fact-', '');
+      const row = document.getElementById(`row-fact-${id}`);
+      if (!row) return;
+      const tds = row.querySelectorAll('td');
+      row.innerHTML = `
+        <form id="edit-fact-form-${id}" class="flex flex-col md:flex-row gap-2 w-full">
+          <input name="reservationId" type="text" value="${tds[1]?.textContent || ''}" class="border rounded px-2 py-1 flex-1" required />
+          <input name="userId" type="text" value="${tds[2]?.textContent || ''}" class="border rounded px-2 py-1 flex-1" required />
+          <input name="amount" type="number" value="${tds[3]?.textContent ? tds[3].textContent.replace(' €','') : ''}" class="border rounded px-2 py-1 flex-1" required />
+          <select name="status" class="border rounded px-2 py-1 flex-1" required>
+            <option value="paid">Payée</option>
+            <option value="pending">En attente</option>
+            <option value="cancelled">Annulée</option>
+          </select>
+          <input name="pdfUrl" type="text" value="${tds[5]?.querySelector('a') ? tds[5].querySelector('a').getAttribute('href') : ''}" class="border rounded px-2 py-1 flex-1" />
+          <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Valider</button>
+          <button type="button" class="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500" id="cancel-edit-fact-${id}">Annuler</button>
+        </form>
+      `;
+      const editForm = document.getElementById(`edit-fact-form-${id}`);
+      if (editForm) {
+        const statusTd = tds[4]?.textContent || '';
+        const statusSelect = editForm.querySelector('[name="status"]');
+        if (statusSelect && 'value' in statusSelect) statusSelect.value = statusTd;
+        editForm.onsubmit = async function(e) {
+          e.preventDefault();
+          let reservationId = '', userId = '', amount = '', status = '', pdfUrl = '';
+          const r = editForm.querySelector('[name="reservationId"]');
+          if (r && 'value' in r) reservationId = r.value.trim();
+          const u = editForm.querySelector('[name="userId"]');
+          if (u && 'value' in u) userId = u.value.trim();
+          const a = editForm.querySelector('[name="amount"]');
+          if (a && 'value' in a) amount = a.value;
+          const s = editForm.querySelector('[name="status"]');
+          if (s && 'value' in s) status = s.value;
+          const p = editForm.querySelector('[name="pdfUrl"]');
+          if (p && 'value' in p) pdfUrl = p.value.trim();
+          if (!reservationId || !userId || !amount || !status) {
+            alert('Veuillez remplir tous les champs obligatoires.');
+            return;
+          }
+          const res = await fetch(`/api/facture-db?id=${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reservationId, userId, amount, status, pdfUrl })
+          });
+          if (res.ok) location.reload();
+          else alert('Erreur lors de la modification.');
+        };
+      }
+      const cancelBtn = document.getElementById(`cancel-edit-fact-${id}`);
+      if (cancelBtn) {
+        cancelBtn.onclick = function() { location.reload(); };
+      }
+    });
+  });
+});
+</script>
