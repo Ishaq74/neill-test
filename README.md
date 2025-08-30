@@ -144,54 +144,40 @@ npm run preview
 
 ### Configuration Base de Données
 
-Le projet utilise une configuration différente selon l'environnement :
-
-#### 🔧 Développement - Neon (Recommandé)
-Pour un environnement de développement avec Neon (serverless) :
+Le projet utilise une configuration automatique selon la variable d'environnement `DB_ENV` :
 
 ```bash
-# Utiliser le script d'aide pour configurer Neon
-npm run db:setup-dev "postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/dbname?sslmode=require"
-
-# Ou manuellement :
+# Copier le fichier d'exemple
 cp .env.example .env
-# Modifier .env avec votre URL Neon et NODE_ENV="development"
+```
 
-# Générer le client Prisma
-npm run db:generate
-
-# Pousser le schéma vers Neon (développement)
-npm run db:push
-
-# Seeder la base avec des données de test
-npm run db:seed
+#### 🔧 Développement - Neon (Recommandé)
+```bash
+# Dans votre fichier .env
+DATABASE_URL="postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/dbname?sslmode=require"
+DB_ENV="dev"
 ```
 
 #### 🚀 Production - PostgreSQL
-Pour un environnement de production avec PostgreSQL :
-
 ```bash
-# Utiliser le script d'aide pour configurer PostgreSQL
-npm run db:setup-prod "postgresql://username:password@localhost:5432/database_name"
+# Dans votre fichier .env  
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+DB_ENV="prod"
+```
 
-# Ou manuellement :
-cp .env.example .env
-# Modifier .env avec votre URL PostgreSQL et NODE_ENV="production"
-
+#### Configuration commune
+```bash
 # Générer le client Prisma
 npm run db:generate
 
-# Créer et appliquer les migrations (production)
+# Pour le développement (push direct)
+npm run db:push
+
+# Pour la production (migrations)
 npm run db:migrate
 
 # Seeder la base avec des données de test
 npm run db:seed
-```
-
-#### 📋 Aide pour la configuration
-```bash
-# Afficher l'aide du script de configuration
-node scripts/setup-db-env.js help
 ```
 
 **Voir [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) pour les instructions complètes.**

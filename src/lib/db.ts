@@ -1,31 +1,19 @@
 import { PrismaClient } from '@prisma/client';
 
-// Environment-specific Prisma client configuration
+// Simple environment-based database configuration
 const getDBConfig = () => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const isNeonDev = isDevelopment && process.env.DATABASE_URL?.includes('neon.tech');
+  const dbEnv = process.env.DB_ENV || 'prod';
   
-  // Neon-specific configuration for development
-  if (isNeonDev) {
+  if (dbEnv === 'dev') {
+    // Development environment (Neon serverless optimizations)
     return {
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      },
-      // Neon serverless optimizations
       log: ['warn', 'error'] as const
     };
   }
   
-  // Production PostgreSQL or local development configuration
+  // Production environment (PostgreSQL with full logging in development)
   return {
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL
-      }
-    },
-    log: isDevelopment ? ['query', 'info', 'warn', 'error'] as const : ['warn', 'error'] as const
+    log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] as const : ['warn', 'error'] as const
   };
 };
 

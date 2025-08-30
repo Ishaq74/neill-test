@@ -11,9 +11,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset",
-    "db:setup-dev": "node scripts/setup-db-env.js dev",
-    "db:setup-prod": "node scripts/setup-db-env.js prod"
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
