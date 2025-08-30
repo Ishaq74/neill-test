@@ -1,0 +1,249 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  nom      String
+  email    String   @unique
+  role     String
+  password String
+
+  // Relations
+  reservations Reservation[]
+  factures     Facture[]
+
+  @@map("utilisateurs")
+}
+
+model Service {
+  id              Int     @id @default(autoincrement())
+  nom             String
+  description     String?
+  content         String?
+  notes           String?
+  prix            Float
+  image           String?
+  imageAlt        String?
+  icon            String?
+  categorie       String?
+  tags            String? // JSON string
+  steps           String? // JSON string
+  duree           String?
+  durationMinutes Int?
+  slug            String  @unique
+  isActive        Int     @default(1)
+  isFeatured      Int     @default(0)
+
+  // Relations
+  reservations Reservation[]
+  galerie      Galerie[]
+  avis         Avis[]
+
+  @@map("services")
+}
+
+model Formation {
+  id              Int     @id @default(autoincrement())
+  titre           String
+  description     String?
+  content         String?
+  notes           String?
+  prix            Float
+  image           String?
+  imageAlt        String?
+  icon            String?
+  categorie       String?
+  tags            String? // JSON string
+  steps           String? // JSON string
+  duree           String?
+  durationMinutes Int?
+  slug            String  @unique
+  isActive        Int     @default(1)
+  isFeatured      Int     @default(0)
+  certification   String?
+  createdAt       String?
+  updatedAt       String?
+
+  // Relations
+  galerie Galerie[]
+  avis    Avis[]
+
+  @@map("formations")
+}
+
+model Reservation {
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  serviceId Int
+  date      String
+  time      String
+  status    String
+  notes     String?
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service  Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  factures Facture[]
+
+  @@map("reservations")
+}
+
+model Facture {
+  id            Int    @id @default(autoincrement())
+  reservationId Int
+  userId        Int
+  amount        Float
+  status        String
+  pdfUrl        String?
+  createdAt     String
+  updatedAt     String
+
+  // Relations
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("factures")
+}
+
+model Galerie {
+  id               Int     @id @default(autoincrement())
+  title            String
+  imageUrl         String
+  alt              String?
+  description      String?
+  uploadedBy       String?
+  createdAt        String
+  global           Int     @default(0)
+  servicesGlobal   Int     @default(0)
+  formationsGlobal Int     @default(0)
+  serviceId        Int?
+  formationId      Int?
+
+  // Relations
+  service   Service?   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  formation Formation? @relation(fields: [formationId], references: [id], onDelete: Cascade)
+
+  @@map("galerie")
+}
+
+model Avis {
+  id               Int     @id @default(autoincrement())
+  utilisateur      String
+  commentaire      String?
+  note             Int
+  global           Int     @default(0)
+  servicesGlobal   Int     @default(0)
+  formationsGlobal Int     @default(0)
+  serviceId        Int?
+  formationId      Int?
+
+  // Relations
+  service   Service?   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  formation Formation? @relation(fields: [formationId], references: [id], onDelete: Cascade)
+
+  @@map("avis")
+}
+
+model SiteIdentity {
+  id                         Int     @id @default(autoincrement())
+  nom                        String
+  slogan                     String?
+  description                String?
+  adresse                    String?
+  codePostal                 String?
+  ville                      String?
+  pays                       String?
+  telephone                  String?
+  email                      String?
+  siteUrl                    String?
+  logo                       String?
+  facebook                   String?
+  instagram                  String?
+  linkedin                   String?
+  tiktok                     String?
+  youtube                    String?
+  mentionsLegales            String?
+  politiqueConfidentialite   String?
+  diplomePrincipal           String?
+  certifications             String?
+  horaires                   String?
+
+  @@map("site_identity")
+}
+
+model Team {
+  id             Int     @id @default(autoincrement())
+  nom            String
+  role           String?
+  bio            String?
+  photo          String?
+  email          String?
+  telephone      String?
+  linkedin       String?
+  instagram      String?
+  certifications String?
+  diplome        String?
+  isActive       Int     @default(1)
+
+  @@map("team")
+}
+
+model BlockedSlot {
+  id     Int     @id @default(autoincrement())
+  title  String
+  start  String
+  end    String?
+  allDay Int     @default(0)
+
+  @@map("blocked_slots")
+}
+
+// Better-auth tables (will be created automatically by better-auth)
+model Account {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  refreshToken      String?  @map("refresh_token") @db.Text
+  accessToken       String?  @map("access_token") @db.Text
+  expiresAt         Int?     @map("expires_at")
+  tokenType         String?  @map("token_type")
+  scope             String?
+  idToken           String?  @map("id_token") @db.Text
+  sessionState      String?  @map("session_state")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}

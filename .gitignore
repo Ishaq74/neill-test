@@ -16,6 +16,7 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.local
 
 # macOS-specific files
 .DS_Store
@@ -42,3 +43,10 @@ dev-debug.log
 # Task files
 tasks.json
 tasks/ 
+
+# Database files
+data.sqlite
+*.db
+
+# Old backup files
+*-old.*
