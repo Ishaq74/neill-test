@@ -52,30 +52,6 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response('Database error', { status: 500 });
   }
 };
-  const { titre, description, tags, images, slug, isActive } = body;
-  function sanitizeArray(val: unknown): string[] {
-    if (!val) return [];
-    if (Array.isArray(val)) return val.filter(v => typeof v === 'string');
-    if (typeof val === 'string') {
-      try {
-        const arr = JSON.parse(val);
-        return Array.isArray(arr) ? arr.filter(v => typeof v === 'string') : [];
-      } catch { return []; }
-    }
-    return [];
-  }
-  const safeTags = sanitizeArray(tags);
-  const safeImages = sanitizeArray(images);
-  const stmt = db.prepare(`INSERT INTO gallery
-    (titre, description, tags, images, slug, isActive)
-    VALUES (?, ?, ?, ?, ?, ?)`);
-  const info = stmt.run(
-    titre, description, JSON.stringify(safeTags), JSON.stringify(safeImages), slug || '', isActive ? 1 : 0
-  );
-  return new Response(JSON.stringify({ id: info.lastInsertRowid, ...body, tags: safeTags, images: safeImages }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-};
 
 export const PATCH: APIRoute = async ({ request, url }) => {
   const id = url.searchParams.get('id');

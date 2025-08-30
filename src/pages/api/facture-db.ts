@@ -104,10 +104,3 @@ export const DELETE: APIRoute = async ({ url }) => {
     return new Response('Database error', { status: 500 });
   }
 };
-  if (!id) return new Response('Missing id', { status: 400 });
-  const stmt = db.prepare('DELETE FROM factures WHERE id=?');
-  stmt.run(id);
-  return new Response(JSON.stringify({ success: true }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-};
