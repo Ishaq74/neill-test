@@ -147,25 +147,4 @@ export const DELETE: APIRoute = async ({ url }) => {
   }
 };
 
-// PATCH update image
-export const PATCH: APIRoute = async ({ request, url }) => {
-  const id = url.searchParams.get('id');
-  if (!id) return new Response('Missing id', { status: 400 });
-  const { title, imageUrl, alt, description, uploadedBy } = await request.json();
-  const stmt = db.prepare('UPDATE galerie SET title=?, imageUrl=?, alt=?, description=?, uploadedBy=? WHERE id=?');
-  stmt.run(title, imageUrl, alt, description, uploadedBy, id);
-  return new Response(JSON.stringify({ id, title, imageUrl, alt, description, uploadedBy }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-};
 
-// DELETE image
-export const DELETE: APIRoute = async ({ url }) => {
-  const id = url.searchParams.get('id');
-  if (!id) return new Response('Missing id', { status: 400 });
-  const stmt = db.prepare('DELETE FROM galerie WHERE id=?');
-  stmt.run(id);
-  return new Response(JSON.stringify({ success: true }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-};

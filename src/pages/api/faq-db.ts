@@ -53,12 +53,6 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response('Database error', { status: 500 });
   }
 };
-  const stmt = db.prepare('INSERT INTO faq (question, reponse, global, servicesGlobal, formationsGlobal, serviceId, formationId) VALUES (?, ?, ?, ?, ?, ?, ?)');
-  const info = stmt.run(question, reponse, global, servicesGlobal, formationsGlobal, serviceId, formationId);
-  return new Response(JSON.stringify({ id: info.lastInsertRowid, question, reponse, global, servicesGlobal, formationsGlobal, serviceId, formationId }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-};
 
 // PATCH update FAQ
 export const PATCH: APIRoute = async ({ request, url }) => {
