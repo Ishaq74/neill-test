@@ -92,7 +92,8 @@ Exploration → Inscription → Apprentissage → Certification → Suivi
 - **[Starwind UI](https://starwind-ui.com/)** - Composants UI modernes et accessibles
 
 ### Backend & Base de Données
-- **[SQLite](https://sqlite.org/)** avec **[better-sqlite3](https://github.com/WiseLibs/better-sqlite3)** - Base de données légère et performante
+- **[PostgreSQL](https://postgresql.org/)** avec **[Prisma](https://prisma.io/)** - Base de données relationnelle moderne et ORM type-safe
+- **[better-auth](https://better-auth.com/)** - Système d'authentification moderne avec plugins admin
 - **API Routes Astro** - Endpoints REST intégrés
 - **[bcryptjs](https://github.com/dcodeIO/bcrypt.js)** - Chiffrement sécurisé des mots de passe
 
@@ -143,12 +144,26 @@ npm run preview
 
 ### Configuration Base de Données
 
-La base de données SQLite se créé automatiquement au premier lancement. Pour initialiser avec des données de test :
+Le projet utilise PostgreSQL avec Prisma. Suivez le guide de migration pour la configuration :
 
 ```bash
-# Lancer le seeding (si disponible)
-npm run seed
+# Copier le fichier d'environnement
+cp .env.example .env
+
+# Configurer votre base de données PostgreSQL dans .env
+# DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+
+# Générer le client Prisma
+npm run db:generate
+
+# Pousser le schéma vers la base de données
+npm run db:push
+
+# Seeder la base avec des données de test
+npm run db:seed
 ```
+
+**Voir [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) pour les instructions complètes.**
 
 ---
 
@@ -180,7 +195,9 @@ artisan-beauty/
 │   │   ├── Utilisateur.ts
 │   │   └── ...
 │   ├── lib/               # Utilitaires et helpers
-│   │   ├── db.ts         # Configuration base de données
+│   │   ├── db.ts         # Client base de données Prisma
+│   │   ├── auth.ts       # Configuration better-auth
+│   │   ├── auth-client.ts # Client auth côté frontend
 │   │   └── utils.ts      # Fonctions utilitaires
 │   ├── styles/           # Styles globaux
 │   │   ├── global.css
@@ -189,7 +206,9 @@ artisan-beauty/
 ├── public/               # Assets statiques
 │   ├── assets/          # Images du site
 │   └── fonts/           # Polices locales
-├── data.sqlite          # Base de données SQLite
+├── prisma/               # Configuration Prisma
+│   ├── schema.prisma    # Schéma de base de données
+│   └── seed.ts         # Script de seeding
 ├── astro.config.mjs     # Configuration Astro
 ├── tailwind.config.js   # Configuration Tailwind
 ├── tsconfig.json        # Configuration TypeScript
