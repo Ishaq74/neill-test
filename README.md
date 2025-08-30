@@ -144,20 +144,37 @@ npm run preview
 
 ### Configuration Base de Données
 
-Le projet utilise PostgreSQL avec Prisma. Suivez le guide de migration pour la configuration :
+Le projet utilise une configuration automatique selon la variable d'environnement `DB_ENV` :
 
 ```bash
-# Copier le fichier d'environnement
+# Copier le fichier d'exemple
 cp .env.example .env
+```
 
-# Configurer votre base de données PostgreSQL dans .env
-# DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+#### 🔧 Développement - Neon (Recommandé)
+```bash
+# Dans votre fichier .env
+DATABASE_URL="postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/dbname?sslmode=require"
+DB_ENV="dev"
+```
 
+#### 🚀 Production - PostgreSQL
+```bash
+# Dans votre fichier .env  
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+DB_ENV="prod"
+```
+
+#### Configuration commune
+```bash
 # Générer le client Prisma
 npm run db:generate
 
-# Pousser le schéma vers la base de données
+# Pour le développement (push direct)
 npm run db:push
+
+# Pour la production (migrations)
+npm run db:migrate
 
 # Seeder la base avec des données de test
 npm run db:seed
