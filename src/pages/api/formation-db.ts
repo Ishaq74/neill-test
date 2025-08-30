@@ -1,6 +1,6 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import db from '@lib/db';
+import { db } from '@lib/db';
 
 // Helper pour parser les champs JSON (tags, steps)
 function parseArrayField(val: any) {
@@ -11,54 +11,60 @@ function parseArrayField(val: any) {
   return [];
 }
 
-// GET formations (pagination, tri, filtres)
+// GET formations 
 export const GET: APIRoute = async ({ request }) => {
-  const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get('page') || '1', 10);
-  const pageSize = Math.max(1, Math.min(100, parseInt(url.searchParams.get('pageSize') || '20', 10)));
-  const sort = url.searchParams.get('sort') || 'createdAt';
-  const dir = url.searchParams.get('dir') === 'asc' ? 'ASC' : 'DESC';
-  const filters: string[] = [];
-  const values: any[] = [];
-  if (url.searchParams.get('search')) {
-    const s = `%${url.searchParams.get('search')}%`;
-    filters.push(`(
-      titre LIKE ? OR
-      description LIKE ? OR
-      categorie LIKE ? OR
-      tags LIKE ? OR
-      content LIKE ? OR
-      notes LIKE ?
-    )`);
-    values.push(s, s, s, s, s, s);
-  } else if (url.searchParams.get('titre')) {
-    filters.push('titre LIKE ?');
-    values.push(`%${url.searchParams.get('titre')}%`);
+  try {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const pageSize = Math.max(1, Math.min(100, parseInt(url.searchParams.get('pageSize') || '20', 10)));
+    
+    const where: any = {};
+    
+    // Apply filters
+    if (url.searchParams.get('search')) {
+      const searchTerm = url.searchParams.get('search')!;
+      where.OR = [
+        { titre: { contains: searchTerm } },
+        { description: { contains: searchTerm } },
+        { categorie: { contains: searchTerm } },
+        { content: { contains: searchTerm } },
+        { notes: { contains: searchTerm } }
+      ];
+    } else if (url.searchParams.get('titre')) {
+      where.titre = { contains: url.searchParams.get('titre')! };
+    }
+    
+    if (url.searchParams.get('categorie')) {
+      where.categorie = url.searchParams.get('categorie')!;
+    }
+    
+    if (url.searchParams.get('isActive')) {
+      where.isActive = url.searchParams.get('isActive') === 'true' ? 1 : 0;
+    }
+
+    const [formations, total] = await Promise.all([
+      db.formation.findMany({
+        where,
+        orderBy: { id: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      db.formation.count({ where })
+    ]);
+
+    const processedFormations = formations.map(f => ({
+      ...f,
+      tags: parseArrayField(f.tags),
+      steps: parseArrayField(f.steps)
+    }));
+
+    return new Response(JSON.stringify({ data: processedFormations, total }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
   }
-  if (url.searchParams.get('categorie')) {
-    filters.push('categorie = ?');
-    values.push(url.searchParams.get('categorie'));
-  }
-  if (url.searchParams.get('isActive')) {
-    filters.push('isActive = ?');
-    values.push(url.searchParams.get('isActive') === 'true' ? 1 : 0);
-  }
-  let query = 'SELECT * FROM formations';
-  if (filters.length) query += ' WHERE ' + filters.join(' AND ');
-  query += ` ORDER BY ${sort} ${dir} LIMIT ? OFFSET ?`;
-  values.push(pageSize, (page - 1) * pageSize);
-  const stmt = db.prepare(query);
-  const formations = (stmt.all(...values) as Record<string, any>[]).map(f => ({
-    ...f,
-    tags: parseArrayField(f.tags),
-    steps: parseArrayField(f.steps)
-  }));
-  // Total count for pagination
-  const totalRow = db.prepare('SELECT COUNT(*) as count FROM formations' + (filters.length ? ' WHERE ' + filters.join(' AND ') : '')).get(...values.slice(0, -2)) as { count?: number };
-  const total = totalRow && typeof totalRow.count === 'number' ? totalRow.count : 0;
-  return new Response(JSON.stringify({ data: formations, total }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
 };
 
 // POST (create)
@@ -68,16 +74,103 @@ export const POST: APIRoute = async ({ request }) => {
     const {
       titre, description, content, notes, prix, image, imageAlt, icon, categorie, tags, steps, duree, durationMinutes, slug, isActive, isFeatured, certification
     } = body;
-    if (!titre || !prix || !slug) return new Response('Titre, prix et slug requis', { status: 400 });
+    
+    if (!titre || !prix || !slug) {
+      return new Response('Titre, prix et slug requis', { status: 400 });
+    }
+    
     const now = new Date().toISOString();
-    const stmt = db.prepare(`INSERT INTO formations (titre, description, content, notes, prix, image, imageAlt, icon, categorie, tags, steps, duree, durationMinutes, slug, isActive, isFeatured, certification, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    const info = stmt.run(
-      titre, description, content, notes, prix, image, imageAlt, icon, categorie,
-      JSON.stringify(tags || []), JSON.stringify(steps || []), duree, durationMinutes, slug, isActive ? 1 : 0, isFeatured ? 1 : 0, certification, now, now
-    );
-    return new Response(JSON.stringify({ id: info.lastInsertRowid, ...body, createdAt: now, updatedAt: now }), {
+    
+    const newFormation = await db.formation.create({
+      data: {
+        titre,
+        description,
+        content,
+        notes,
+        prix,
+        image,
+        imageAlt,
+        icon,
+        categorie,
+        tags: JSON.stringify(tags || []),
+        steps: JSON.stringify(steps || []),
+        duree,
+        durationMinutes,
+        slug,
+        isActive: isActive ? 1 : 0,
+        isFeatured: isFeatured ? 1 : 0,
+        certification,
+        createdAt: now,
+        updatedAt: now
+      }
+    });
+    
+    return new Response(JSON.stringify({ ...newFormation, tags: tags || [], steps: steps || [] }), {
       headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
+};
+
+// PATCH (update)
+export const PATCH: APIRoute = async ({ request, url }) => {
+  try {
+    const id = url.searchParams.get('id');
+    if (!id) return new Response('Missing id', { status: 400 });
+    
+    const body = await request.json();
+    const updateData: any = {};
+    
+    const fields = [
+      'titre', 'description', 'content', 'notes', 'prix', 'image', 'imageAlt', 'icon', 'categorie', 'tags', 'steps', 'duree', 'durationMinutes', 'slug', 'isActive', 'isFeatured', 'certification'
+    ];
+    
+    for (const key of fields) {
+      if (key in body) {
+        if (key === 'tags' || key === 'steps') {
+          updateData[key] = JSON.stringify(body[key] || []);
+        } else if (key === 'isActive' || key === 'isFeatured') {
+          updateData[key] = body[key] ? 1 : 0;
+        } else {
+          updateData[key] = body[key];
+        }
+      }
+    }
+    
+    updateData.updatedAt = new Date().toISOString();
+    
+    const updated = await db.formation.update({
+      where: { id: parseInt(id) },
+      data: updateData
+    });
+    
+    return new Response(JSON.stringify(updated), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
+};
+
+// DELETE
+export const DELETE: APIRoute = async ({ url }) => {
+  try {
+    const id = url.searchParams.get('id');
+    if (!id) return new Response('Missing id', { status: 400 });
+    
+    await db.formation.delete({
+      where: { id: parseInt(id) }
+    });
+    
+    return new Response('Deleted', { status: 200 });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
+};
     });
   } catch (e) {
     return new Response('Erreur création formation', { status: 500 });

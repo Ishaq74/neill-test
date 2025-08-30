@@ -1,51 +1,150 @@
 import type { APIRoute } from 'astro';
-import db from '@lib/db';
+import { db } from '@lib/db';
 
 // GET images with dynamic filters
 export const GET: APIRoute = async ({ url }) => {
-  const params = url.searchParams;
-  const serviceId = params.get('serviceId');
-  const formationId = params.get('formationId');
-  const globalFlag = params.get('global');
-  const servicesGlobal = params.get('servicesGlobal');
-  const formationsGlobal = params.get('formationsGlobal');
-  let query = 'SELECT * FROM galerie WHERE 1=1';
-  const values: any[] = [];
-  if (serviceId) {
-    query += ' AND serviceId = ?';
-    values.push(serviceId);
+  try {
+    const params = url.searchParams;
+    const serviceId = params.get('serviceId');
+    const formationId = params.get('formationId');
+    const globalFlag = params.get('global');
+    const servicesGlobal = params.get('servicesGlobal');
+    const formationsGlobal = params.get('formationsGlobal');
+    
+    const where: any = {};
+    
+    if (serviceId) {
+      where.serviceId = parseInt(serviceId);
+    }
+    if (formationId) {
+      where.formationId = parseInt(formationId);
+    }
+    if (globalFlag) {
+      where.global = 1;
+    }
+    if (servicesGlobal) {
+      where.servicesGlobal = 1;
+    }
+    if (formationsGlobal) {
+      where.formationsGlobal = 1;
+    }
+    
+    const galerie = await db.galerie.findMany({
+      where,
+      include: {
+        service: { select: { nom: true } },
+        formation: { select: { titre: true } }
+      },
+      orderBy: { id: 'desc' }
+    });
+    
+    return new Response(JSON.stringify(galerie), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
   }
-  if (formationId) {
-    query += ' AND formationId = ?';
-    values.push(formationId);
-  }
-  if (globalFlag) {
-    query += ' AND global = 1';
-  }
-  if (servicesGlobal) {
-    query += ' AND servicesGlobal = 1';
-  }
-  if (formationsGlobal) {
-    query += ' AND formationsGlobal = 1';
-  }
-  query += ' ORDER BY createdAt DESC';
-  const stmt = db.prepare(query);
-  const galerie = stmt.all(...values);
-  // On renvoie bien le champ alt (texte alternatif)
-  return new Response(JSON.stringify(galerie), {
-    headers: { 'Content-Type': 'application/json' },
-  });
 };
 
 // POST add image
 export const POST: APIRoute = async ({ request }) => {
-  const { title, imageUrl, alt, description, uploadedBy } = await request.json();
-  const createdAt = new Date().toISOString();
-  const stmt = db.prepare('INSERT INTO galerie (title, imageUrl, alt, description, uploadedBy, createdAt) VALUES (?, ?, ?, ?, ?, ?)');
-  const info = stmt.run(title, imageUrl, alt, description, uploadedBy, createdAt);
-  return new Response(JSON.stringify({ id: info.lastInsertRowid, title, imageUrl, alt, description, uploadedBy, createdAt }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  try {
+    const body = await request.json();
+    const { 
+      title, 
+      imageUrl, 
+      alt, 
+      description, 
+      uploadedBy,
+      global = 0,
+      servicesGlobal = 0,
+      formationsGlobal = 0,
+      serviceId = null,
+      formationId = null
+    } = body;
+    
+    if (!title || !imageUrl) {
+      return new Response('Title et imageUrl requis', { status: 400 });
+    }
+    
+    const createdAt = new Date().toISOString();
+    const newImage = await db.galerie.create({
+      data: {
+        title,
+        imageUrl,
+        alt,
+        description,
+        uploadedBy,
+        createdAt,
+        global: parseInt(global),
+        servicesGlobal: parseInt(servicesGlobal),
+        formationsGlobal: parseInt(formationsGlobal),
+        serviceId: serviceId ? parseInt(serviceId) : null,
+        formationId: formationId ? parseInt(formationId) : null
+      }
+    });
+    
+    return new Response(JSON.stringify(newImage), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
+};
+
+// PATCH update image
+export const PATCH: APIRoute = async ({ request, url }) => {
+  try {
+    const id = url.searchParams.get('id');
+    if (!id) return new Response('Missing id', { status: 400 });
+    
+    const body = await request.json();
+    const updateData: any = {};
+    
+    const fields = ['title', 'imageUrl', 'alt', 'description', 'uploadedBy', 'global', 'servicesGlobal', 'formationsGlobal', 'serviceId', 'formationId'];
+    for (const key of fields) {
+      if (key in body) {
+        if (key === 'global' || key === 'servicesGlobal' || key === 'formationsGlobal') {
+          updateData[key] = parseInt(body[key]);
+        } else if (key === 'serviceId' || key === 'formationId') {
+          updateData[key] = body[key] ? parseInt(body[key]) : null;
+        } else {
+          updateData[key] = body[key];
+        }
+      }
+    }
+    
+    const updated = await db.galerie.update({
+      where: { id: parseInt(id) },
+      data: updateData
+    });
+    
+    return new Response(JSON.stringify(updated), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
+};
+
+// DELETE image
+export const DELETE: APIRoute = async ({ url }) => {
+  try {
+    const id = url.searchParams.get('id');
+    if (!id) return new Response('Missing id', { status: 400 });
+    
+    await db.galerie.delete({
+      where: { id: parseInt(id) }
+    });
+    
+    return new Response('Deleted', { status: 200 });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
 };
 
 // PATCH update image

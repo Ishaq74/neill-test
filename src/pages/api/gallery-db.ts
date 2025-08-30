@@ -1,18 +1,57 @@
 import type { APIRoute } from 'astro';
-import db from '@lib/db';
+import { db } from '@lib/db';
 
 export const prerender = false;
 
+// This is an alias for galerie-db.ts - redirecting to use the same galerie table
 export const GET: APIRoute = async () => {
-  const stmt = db.prepare('SELECT * FROM gallery ORDER BY id DESC');
-  const gallery = stmt.all();
-  return new Response(JSON.stringify(gallery), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  try {
+    const galerie = await db.galerie.findMany({
+      orderBy: { id: 'desc' }
+    });
+    return new Response(JSON.stringify(galerie), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const body = await request.json();
+  try {
+    const body = await request.json();
+    const { title, imageUrl, alt, description, uploadedBy } = body;
+    
+    if (!title || !imageUrl) {
+      return new Response('Title et imageUrl requis', { status: 400 });
+    }
+    
+    const createdAt = new Date().toISOString();
+    const newImage = await db.galerie.create({
+      data: {
+        title,
+        imageUrl,
+        alt,
+        description,
+        uploadedBy,
+        createdAt,
+        global: 0,
+        servicesGlobal: 0,
+        formationsGlobal: 0,
+        serviceId: null,
+        formationId: null
+      }
+    });
+    
+    return new Response(JSON.stringify(newImage), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response('Database error', { status: 500 });
+  }
+};
   const { titre, description, tags, images, slug, isActive } = body;
   function sanitizeArray(val: unknown): string[] {
     if (!val) return [];
